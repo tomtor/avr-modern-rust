@@ -1,0 +1,48 @@
+[package]
+name = "attiny402"
+version = "0.1.0"
+authors = ["Tom Vijlbrief <tvijlbrief@gmail.com>"]
+edition = "2021"
+license = "MIT OR Apache-2.0"
+
+[[bin]]
+name = "attiny402"
+test = false
+bench = false
+
+[dependencies]
+panic-halt = "1.0.0"
+ufmt = "0.2.0"
+nb = "1.1.0"
+embedded-hal = "1.0"
+
+[dependencies.embedded-hal-v0]
+version = "0.2.3"
+package = "embedded-hal"
+features = ["unproven"]
+
+[dependencies.avr-device]
+version = "0.7.0"
+features = ["attiny402", "rt"]
+
+[dependencies.arduino-hal]
+git = "https://github.com/rahix/avr-hal"
+rev = "fafaf587a32a4500239fd073f89d1b9c36b48092"
+features = ["sparkfun-promini-3v3"]
+
+[dependencies.avr-hal-generic]
+git = "https://github.com/rahix/avr-hal"
+rev = "fafaf587a32a4500239fd073f89d1b9c36b48092"
+
+# Configure the build for minimal size - AVRs have very little program memory
+[profile.dev]
+panic = "abort"
+lto = true
+opt-level = "s"
+
+[profile.release]
+panic = "abort"
+codegen-units = 1
+debug = true
+lto = true
+opt-level = "s"
