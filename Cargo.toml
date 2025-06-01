@@ -15,7 +15,10 @@ panic-halt = "1.0.0"
 ufmt = "0.2.0"
 nb = "1.1.0"
 embedded-hal = "1.0"
-#heapless = "0.8.0"
+
+[dependencies.heapless]
+version = "0.8.0"
+features = ["ufmt"]
 
 [dependencies.embedded-hal-v0]
 version = "0.2.3"
@@ -26,10 +29,10 @@ features = ["unproven"]
 version = "0.7.0"
 features = ["attiny402", "rt"]
 
-[dependencies.atmega-hal]
-git = "https://github.com/rahix/avr-hal"
-rev = "fafaf587a32a4500239fd073f89d1b9c36b48092"
-features = ["atmega328p"]
+#[dependencies.atmega-hal]
+#git = "https://github.com/rahix/avr-hal"
+#rev = "fafaf587a32a4500239fd073f89d1b9c36b48092"
+#features = ["atmega328p"]
 
 [dependencies.avr-hal-generic]
 git = "https://github.com/rahix/avr-hal"

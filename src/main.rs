@@ -15,9 +15,29 @@ pub use avr_hal_generic::port::{mode, PinMode, PinOps};
 
 //use avr_hal_generic::prelude::*;
 
-use panic_halt as _;
+//use panic_halt as _;
+#[panic_handler]
+fn panic(_info: &core::panic::PanicInfo) -> ! {
+    // disable interrupts - firmware has panicked so no ISRs should continue running
+    avr_device::interrupt::disable();
 
-//use heapless:String;
+    // get the peripherals so we can access serial and the LED.
+    //
+    // SAFETY: Because main() already has references to the peripherals this is an unsafe
+    // operation - but because no other code can run after the panic handler was called,
+    // we know it is okay.
+    let dp = unsafe { pac::Peripherals::steal() };
+
+    loop {
+        set_high(&dp.VPORTA, LED);
+        delay_ms(5);
+        set_low(&dp.VPORTA, LED);
+        delay_ms(100);
+    }
+}
+
+use heapless::String;
+use ufmt::{uwrite,uwriteln};
 
 pub fn init_clock(dp: &Peripherals) {
     dp.CPU.ccp.write(|w| w.ccp().ioreg()); // remove protection
@@ -29,6 +49,16 @@ pub fn delay_ms(ms: u32) {
     avr_device::asm::delay_cycles(CoreClock::FREQ / 1000 * ms);
 }
 
+// pub struct Serial<'a> {
+//   usart: &'a avr_device::attiny402::Peripherals,
+// }
+
+// impl Serial<'a> {
+//     pub fn new(usart: &avr_device::attiny402::Peripherals) -> Self {
+//         Self { usart }
+//     }
+// }
+
 pub fn init_serial(dp: &Peripherals) {
     const TX: u8 = 0b0100_0000; // PA6
 
@@ -38,7 +68,7 @@ pub fn init_serial(dp: &Peripherals) {
     unsafe {
         dp.USART0.ctrlc.write(|w| w.bits(0x3)); // 8 bit data
     }
-    dp.USART0.baud.write(|w| w.bits(833)); // 38400
+    dp.USART0.baud.write(|w| w.bits(833)); // 38400 baud
     unsafe {
         dp.USART0
             .ctrlb
@@ -46,9 +76,19 @@ pub fn init_serial(dp: &Peripherals) {
     }
 }
 
-pub fn serial_write(dp: &Peripherals, b: u8) {
-    while (dp.USART0.status.read().bits() & 0b0010_0000) == 0 {} // Wait for empty tansmit buffer
+pub fn serial_c(dp: &Peripherals, b: u8) {
+    while (dp.USART0.status.read().bits() & 0b0010_0000) == 0 {} // Wait for empty transmit buffer
     dp.USART0.txdatal.write(|w| w.bits(b));
+}
+
+pub fn serial_ba(dp: &Peripherals, s: &[u8]) {
+    for b in s {
+        serial_c(dp, *b);
+    }
+}
+
+pub fn serial_str(dp: &Peripherals, s: &str) {
+    serial_ba(dp, s.as_bytes());
 }
 
 pub fn set_high(r: &vporta::RegisterBlock, b: u8) {
@@ -72,14 +112,15 @@ fn main() -> ! {
 
     dp.VPORTA.dir.modify(|r, w| w.bits(r.bits() | LED));
 
-    let mut counter: u8 = 0;
+    let mut counter: u16 = 0;
 
     loop {
         counter += 1;
-        serial_write(&dp, 0x30 + (counter % 10));
-        serial_write(&dp, b'\r');
-        serial_write(&dp, b'\n');
-
+        let mut s: String<7> = String::new();
+        uwriteln!(s, "{:?}\r", counter).unwrap();
+        serial_str(&dp, &s);
+        //serial_str(&dp, "\r\n");
+        
         set_high(&dp.VPORTA, LED);
 
         delay_ms(5);
