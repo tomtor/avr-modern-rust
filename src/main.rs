@@ -13,6 +13,9 @@ use avr_hal_generic::clock::Clock;
 
 pub use avr_hal_generic::port::{mode, PinMode, PinOps};
 
+use heapless::String;
+use ufmt::uwrite;
+
 //use avr_hal_generic::prelude::*;
 
 //use panic_halt as _;
@@ -27,7 +30,7 @@ fn panic(_info: &core::panic::PanicInfo) -> ! {
     // operation - but because no other code can run after the panic handler was called,
     // we know it is okay.
     let dp = unsafe { pac::Peripherals::steal() };
-
+    //serial_str(&dp, &_info.message().as_str().unwrap());
     loop {
         set_high(&dp.VPORTA, LED);
         delay_ms(5);
@@ -36,13 +39,12 @@ fn panic(_info: &core::panic::PanicInfo) -> ! {
     }
 }
 
-use heapless::String;
-use ufmt::{uwrite,uwriteln};
-
 pub fn init_clock(dp: &Peripherals) {
     dp.CPU.ccp.write(|w| w.ccp().ioreg()); // remove protection
     assert!(CoreClock::FREQ == 8_000_000);
-    dp.CLKCTRL.mclkctrlb.write(|w| w.pen().bit(true)); // change frequency divider from 6 to 2, so we get 16/2 = 8 Mhz
+    dp.CLKCTRL
+        .mclkctrlb
+        .write(|w| w.pen().set_bit().pdiv()._2x()); // change frequency divider from 6 to 2, so we get 16/2 = 8 Mhz
 }
 
 pub fn delay_ms(ms: u32) {
@@ -64,16 +66,9 @@ pub fn init_serial(dp: &Peripherals) {
 
     set_high(&dp.VPORTA, TX);
     dp.VPORTA.dir.modify(|r, w| w.bits(r.bits() | TX));
-
-    unsafe {
-        dp.USART0.ctrlc.write(|w| w.bits(0x3)); // 8 bit data
-    }
+    dp.USART0.ctrlc.write(|w| w.chsize()._8bit());
     dp.USART0.baud.write(|w| w.bits(833)); // 38400 baud
-    unsafe {
-        dp.USART0
-            .ctrlb
-            .modify(|r, w| w.bits(r.bits() | 0b0100_0000)); // enable TX
-    }
+    dp.USART0.ctrlb.write(|w| w.txen().set_bit());
 }
 
 pub fn serial_c(dp: &Peripherals, b: u8) {
@@ -84,6 +79,15 @@ pub fn serial_c(dp: &Peripherals, b: u8) {
 pub fn serial_ba(dp: &Peripherals, s: &[u8]) {
     for b in s {
         serial_c(dp, *b);
+    }
+}
+
+pub fn serial_int(dp: &Peripherals, i: u16) {
+    if i > 9 {
+        serial_int(dp, i / 10);
+        serial_int(dp, i % 10);
+    } else {
+        serial_c(dp, b'0' + i as u8);
     }
 }
 
@@ -116,11 +120,12 @@ fn main() -> ! {
 
     loop {
         counter += 1;
-        let mut s: String<7> = String::new();
-        uwriteln!(s, "{:?}\r", counter).unwrap();
-        serial_str(&dp, &s);
-        //serial_str(&dp, "\r\n");
-        
+        //let mut s: String<7> = String::new();
+        //uwrite!(s, "{:?}\r\n", counter).unwrap();
+        //serial_str(&dp, &s);
+        serial_int(&dp, counter.into());
+        serial_str(&dp, "\r\n");
+
         set_high(&dp.VPORTA, LED);
 
         delay_ms(5);
