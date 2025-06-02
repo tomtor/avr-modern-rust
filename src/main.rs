@@ -1,8 +1,6 @@
 #![no_std]
 #![no_main]
 
-//mod newport;
-
 const LED: u8 = 0b1000_0000; // PA7
 
 const FREQ: u32 = 8_000_000;
@@ -12,8 +10,6 @@ use avr_device::attiny402::{self as pac, vporta, Peripherals};
 
 use heapless::String;
 use ufmt::uwrite;
-
-//use avr_hal_generic::prelude::*;
 
 //use panic_halt as _;
 #[panic_handler]
@@ -38,32 +34,22 @@ fn panic(_info: &core::panic::PanicInfo) -> ! {
 
 pub fn init_clock(dp: &Peripherals) {
     dp.CPU.ccp().write(|w| w.ccp().ioreg()); // remove protection
-    //assert!(CoreClock::FREQ == 8_000_000);
+    assert!(FREQ == 8_000_000);
     dp.CLKCTRL
         .mclkctrlb()
         .write(|w| w.pen().set_bit().pdiv()._2x()); // change frequency divider from 6 to 2, so we get 16/2 = 8 Mhz
 }
 
 pub fn delay_ms(ms: u32) {
-    //avr_device::asm::delay_cycles(CoreClock::FREQ / 1000 * ms);
     avr_device::asm::delay_cycles(FREQ / 1000 * ms);
 }
-
-// pub struct Serial<'a> {
-//   usart: &'a avr_device::attiny402::Peripherals,
-// }
-
-// impl Serial<'a> {
-//     pub fn new(usart: &avr_device::attiny402::Peripherals) -> Self {
-//         Self { usart }
-//     }
-// }
 
 pub fn init_serial(dp: &Peripherals) {
     dp.PORTA.out().write(|w| w.pa6().set_bit());
     dp.PORTA.dirset().write(|w| w.pa6().set_bit());
     dp.USART0.ctrlc().write(|w| w.chsize()._8bit());
-    unsafe { dp.USART0.baud().write(|w| w.bits(833)); } // 38400 baud
+    //unsafe { dp.USART0.baud().write(|w| w.bits(833)); } // 38400 baud
+    unsafe { dp.USART0.baud().write(|w| w.bits(278)); } // 115200 baud
     dp.USART0.ctrlb().write(|w| w.txen().set_bit());
 }
 
