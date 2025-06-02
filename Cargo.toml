@@ -25,18 +25,21 @@ version = "0.2.3"
 package = "embedded-hal"
 features = ["unproven"]
 
-[dependencies.avr-device]
-version = "0.7.0"
-features = ["attiny402", "rt"]
-
 #[dependencies.atmega-hal]
 #git = "https://github.com/rahix/avr-hal"
 #rev = "fafaf587a32a4500239fd073f89d1b9c36b48092"
 #features = ["atmega328p"]
 
-[dependencies.avr-hal-generic]
-git = "https://github.com/rahix/avr-hal"
-rev = "fafaf587a32a4500239fd073f89d1b9c36b48092"
+[dependencies.avr-device]
+version = "0.7.0"
+path = "../../avr-device"
+#git = "https://github.com/rahix/avr-device"
+features = ["attiny402", "rt"]
+#features = ["avr128db28", "rt"]
+
+#[dependencies.avr-hal-generic]
+#git = "https://github.com/rahix/avr-hal"
+#rev = "fafaf587a32a4500239fd073f89d1b9c36b48092"
 
 # Configure the build for minimal size - AVRs have very little program memory
 [profile.dev]

@@ -5,13 +5,10 @@
 
 const LED: u8 = 0b1000_0000; // PA7
 
-type CoreClock = avr_hal_generic::clock::MHz8;
+const FREQ: u32 = 8_000_000;
 
 use avr_device::attiny402::{self as pac, vporta, Peripherals};
-
-use avr_hal_generic::clock::Clock;
-
-pub use avr_hal_generic::port::{mode, PinMode, PinOps};
+//use avr_device::avr128db28::{self as pac, vporta, Peripherals};
 
 use heapless::String;
 use ufmt::uwrite;
@@ -40,15 +37,16 @@ fn panic(_info: &core::panic::PanicInfo) -> ! {
 }
 
 pub fn init_clock(dp: &Peripherals) {
-    dp.CPU.ccp.write(|w| w.ccp().ioreg()); // remove protection
-    assert!(CoreClock::FREQ == 8_000_000);
+    dp.CPU.ccp().write(|w| w.ccp().ioreg()); // remove protection
+    //assert!(CoreClock::FREQ == 8_000_000);
     dp.CLKCTRL
-        .mclkctrlb
+        .mclkctrlb()
         .write(|w| w.pen().set_bit().pdiv()._2x()); // change frequency divider from 6 to 2, so we get 16/2 = 8 Mhz
 }
 
 pub fn delay_ms(ms: u32) {
-    avr_device::asm::delay_cycles(CoreClock::FREQ / 1000 * ms);
+    //avr_device::asm::delay_cycles(CoreClock::FREQ / 1000 * ms);
+    avr_device::asm::delay_cycles(FREQ / 1000 * ms);
 }
 
 // pub struct Serial<'a> {
@@ -62,18 +60,16 @@ pub fn delay_ms(ms: u32) {
 // }
 
 pub fn init_serial(dp: &Peripherals) {
-    const TX: u8 = 0b0100_0000; // PA6
-
-    set_high(&dp.VPORTA, TX);
-    dp.VPORTA.dir.modify(|r, w| w.bits(r.bits() | TX));
-    dp.USART0.ctrlc.write(|w| w.chsize()._8bit());
-    dp.USART0.baud.write(|w| w.bits(833)); // 38400 baud
-    dp.USART0.ctrlb.write(|w| w.txen().set_bit());
+    dp.PORTA.out().write(|w| w.pa6().set_bit());
+    dp.PORTA.dirset().write(|w| w.pa6().set_bit());
+    dp.USART0.ctrlc().write(|w| w.chsize()._8bit());
+    unsafe { dp.USART0.baud().write(|w| w.bits(833)); } // 38400 baud
+    dp.USART0.ctrlb().write(|w| w.txen().set_bit());
 }
 
 pub fn serial_c(dp: &Peripherals, b: u8) {
-    while (dp.USART0.status.read().bits() & 0b0010_0000) == 0 {} // Wait for empty transmit buffer
-    dp.USART0.txdatal.write(|w| w.bits(b));
+    while dp.USART0.status().read().dreif() == false {} // Wait for empty transmit buffer
+    unsafe { dp.USART0.txdatal().write(|w| w.bits(b)); }
 }
 
 pub fn serial_ba(dp: &Peripherals, s: &[u8]) {
@@ -96,14 +92,14 @@ pub fn serial_str(dp: &Peripherals, s: &str) {
 }
 
 pub fn set_high(r: &vporta::RegisterBlock, b: u8) {
-    r.out.modify(|r, w| w.bits(r.bits() | b));
+    unsafe { r.out().modify(|r, w| w.bits(r.bits() | b)); }
 }
 pub fn set_low(r: &vporta::RegisterBlock, b: u8) {
-    r.out.modify(|r, w| w.bits(r.bits() & !b));
+    unsafe { r.out().modify(|r, w| w.bits(r.bits() & !b)); }
 }
 pub fn set(r: &vporta::RegisterBlock, b: u8, v: bool) {
-    r.out
-        .modify(|r, w| w.bits(if v { r.bits() | b } else { r.bits() & !b }));
+    unsafe { r.out()
+        .modify(|r, w| w.bits(if v { r.bits() | b } else { r.bits() & !b })); }
 }
 
 //#[arduino_hal::entry]
@@ -114,7 +110,7 @@ fn main() -> ! {
     init_clock(&dp);
     init_serial(&dp);
 
-    dp.VPORTA.dir.modify(|r, w| w.bits(r.bits() | LED));
+    unsafe { dp.VPORTA.dir().modify(|r, w| w.bits(r.bits() | LED)); }
 
     let mut counter: u16 = 0;
 
