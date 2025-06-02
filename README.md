@@ -1,11 +1,13 @@
-attiny402
-=========
+avr-modern-rust
+===============
 
 Rust project for the _attiny402_ (or _attiny1614_ or _avr128db28_ because these have compatible peripherals).
 
 This uses the serial USART and flashes leds.
 
 I will add code for the realtime counter.
+
+Credits to the author of https://github.com/Rahix/avr-device for his Rust crates and examples!
 
 ## Build Instructions
 1. Install prerequisites as described in the [`avr-hal` README] (`avr-gcc`, `avr-libc`, `avrdude`, [`ravedude`]).
