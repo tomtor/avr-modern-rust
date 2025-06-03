@@ -1,5 +1,6 @@
 #![no_std]
 #![no_main]
+// #![feature(asm_experimental_arch)]
 
 const LED: u8 = 0b1000_0000; // PA7
 
@@ -96,9 +97,9 @@ impl<'a> ufmt::uWrite for Serial<'a> {
         self.write_ba(s.as_bytes());
         Ok(())
     }
-    
+
     fn write_char(&mut self, c: char) -> Result<(), Self::Error> {
-        let mut buf: [u8; 4] = [0;4];
+        let mut buf: [u8; 4] = [0; 4];
         self.write_str(c.encode_utf8(&mut buf)).unwrap();
         //self.write_c(c as u8);
         Ok(())
@@ -137,8 +138,14 @@ pub fn set(r: &vporta::RegisterBlock, b: u8, v: bool) {
     }
 }
 
+
 #[avr_device::entry]
 fn main() -> ! {
+    // unsafe { core::arch::asm!(
+    //     " .global __TEXT_REGION_LENGTH__",
+    //     " .equ __TEXT_REGION_LENGTH__, (1024)",
+    // ); }
+
     let dp = pac::Peripherals::take().unwrap();
 
     init_clock(&dp);
@@ -163,7 +170,7 @@ fn main() -> ! {
         f *= SCALE;
 
         // write!(serial, "Counter: {:?} f: {:?} ", counter, f).unwrap();
-        //write!(serial, "Counter: {:?} ", counter).unwrap();
+        // write!(serial, "Counter: {:?} ", counter).unwrap();
         uwrite!(serial, "Counter: {:?} ", counter).unwrap();
 
         // serial.write_int(counter.into());
