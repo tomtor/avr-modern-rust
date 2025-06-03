@@ -20,6 +20,10 @@ embedded-hal = "1.0"
 version = "0.8.0"
 features = ["ufmt"]
 
+[dependencies.embedded-io]
+version = "0.6"
+package = "embedded-io"
+
 [dependencies.embedded-hal-v0]
 version = "0.2.3"
 package = "embedded-hal"

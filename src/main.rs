@@ -5,11 +5,16 @@ const LED: u8 = 0b1000_0000; // PA7
 
 const FREQ: u32 = 8_000_000; // Must be 8 Mhz, this is hard wired in init_clock()
 
+use core::convert::Infallible;
+
 use avr_device::attiny402::{self as pac, vporta, Peripherals};
 //use avr_device::avr128db28::{self as pac, vporta, Peripherals};
 
-use heapless::String;
-use ufmt::uwrite;
+use embedded_io::{self, Write};
+
+//use heapless::String;
+
+use ufmt::{uWrite, uwrite};
 
 //use panic_halt as _;
 #[panic_handler]
@@ -82,9 +87,36 @@ impl<'a> Serial<'a> {
             self.write_c(b'0' + i as u8);
         }
     }
+}
 
-    pub fn write_str(&self, s: &str) {
+impl<'a> ufmt::uWrite for Serial<'a> {
+    type Error = Infallible;
+
+    fn write_str(&mut self, s: &str) -> Result<(), Self::Error> {
         self.write_ba(s.as_bytes());
+        Ok(())
+    }
+    
+    fn write_char(&mut self, c: char) -> Result<(), Self::Error> {
+        let mut buf: [u8; 4] = [0;4];
+        self.write_str(c.encode_utf8(&mut buf)).unwrap();
+        //self.write_c(c as u8);
+        Ok(())
+    }
+}
+
+impl<'a> embedded_io::ErrorType for Serial<'a> {
+    type Error = Infallible;
+}
+
+impl<'a> embedded_io::Write for Serial<'a> {
+    fn write(&mut self, buf: &[u8]) -> Result<usize, Self::Error> {
+        self.write_ba(buf);
+        Ok(buf.len())
+    }
+
+    fn flush(&mut self) -> Result<(), Self::Error> {
+        Ok(())
     }
 }
 
@@ -111,7 +143,7 @@ fn main() -> ! {
 
     init_clock(&dp);
 
-    let serial = Serial::new(&dp);
+    let mut serial = Serial::new(&dp);
 
     unsafe {
         dp.VPORTA.dir().modify(|r, w| w.bits(r.bits() | LED));
@@ -130,13 +162,16 @@ fn main() -> ! {
         counter += 1;
         f *= SCALE;
 
-        //let mut s: String<7> = String::new();
-        //uwrite!(s, "{:?}\r\n", counter).unwrap();
-        //write_str(&dp, &s);
-        serial.write_int(counter.into());
-        serial.write_str(" ");
+        // write!(serial, "Counter: {:?} f: {:?} ", counter, f).unwrap();
+        //write!(serial, "Counter: {:?} ", counter).unwrap();
+        uwrite!(serial, "Counter: {:?} ", counter).unwrap();
+
+        // serial.write_int(counter.into());
+        //serial.write_str(" ");
+        serial.write_char('€').unwrap();
+        uwrite!(serial, "μ€ ").unwrap();
         serial.write_int((f * 1000.0) as u16);
-        serial.write_str("\r\n");
+        serial.write(b"\r\n").unwrap();
 
         set_high(&dp.VPORTA, LED);
 

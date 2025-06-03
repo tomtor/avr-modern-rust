@@ -1,6 +1,8 @@
 [build]
 target = "avr-none"
+#rustflags = ["-C", "target-cpu=atmega128"]
 rustflags = ["-C", "target-cpu=attiny1614"]
+#rustflags = ["-C", "target-cpu=attiny402"]
 
 [target.'cfg(target_arch = "avr")']
 runner = "ravedude"
