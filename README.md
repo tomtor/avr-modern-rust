@@ -1,9 +1,11 @@
 avr-modern-rust
 ===============
 
-Rust project for the _attiny402_ (or _attiny1614_ or _avr128db28_ because these have compatible peripherals).
+Rust project for the modern AVR CPUs like _attiny402_, _attiny1614_, _avr128db28_ which all share compatible peripherals).
 
-This uses the serial USART and flashes leds.
+It implements parts of the embedded_hal and embedded_io traits.
+
+The example code uses the serial USART and flashes leds nad some dummy calculations.
 
 I will add code for the realtime counter.
 

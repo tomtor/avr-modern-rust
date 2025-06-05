@@ -1,12 +1,12 @@
 [package]
-name = "attiny402"
+name = "avr_modern_demo"
 version = "0.1.0"
 authors = ["Tom Vijlbrief <tvijlbrief@gmail.com>"]
 edition = "2021"
 license = "MIT OR Apache-2.0"
 
 [[bin]]
-name = "attiny402"
+name = "avr_modern_demo"
 test = false
 bench = false
 
