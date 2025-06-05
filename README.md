@@ -7,7 +7,7 @@ It implements parts of the embedded_hal and embedded_io traits.
 
 The example code uses the serial USART and flashes leds nad some dummy calculations.
 
-I will add code for the realtime counter.
+Also contains sleep code for the RTC realtime counter.
 
 Credits to the author of https://github.com/Rahix/avr-device for his Rust crates and examples!
 

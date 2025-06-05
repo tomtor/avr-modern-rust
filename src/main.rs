@@ -1,7 +1,8 @@
 #![no_std]
 #![no_main]
-#![feature(abi_avr_interrupt)]
 
+#![feature(abi_avr_interrupt)]
+//#![feature(core_intrinsics)]
 // #![feature(asm_experimental_arch)]
 
 const LED: u8 = 0b1000_0000; // PA7
@@ -108,12 +109,12 @@ fn main() -> ! {
         set_high(&dp.VPORTA, LED);
 
         // delay::delay_ms(5);
-        // unsafe { interrupt::enable();}
-        delay::sleep_delay(&dp, 5, &mut serial);
+        delay::sleep_delay(5); // (counter & 0xfff) + 1);
 
         //set_low(&dp.VPORTA, LED); // or:
         set(&dp.VPORTA, LED, false);
 
-        delay::delay_ms(990);
+        //delay::delay_ms(990);
+        delay::sleep_delay(990);
     }
 }
