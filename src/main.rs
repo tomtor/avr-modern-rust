@@ -12,8 +12,7 @@ const FREQ: u32 = 8_000_000; // Must be 8 Mhz, this is hard wired in init_clock(
 mod delay;
 mod serial;
 
-use avr_device::{attiny402::{self as pac, vporta, Peripherals}};
-//use avr_device::avr128db28::{self as pac, vporta, Peripherals};
+use avr_device::{attiny402::{self as pac, porta, Peripherals}};
 
 use crate::serial::Serial;
 
@@ -37,9 +36,9 @@ fn panic(_info: &core::panic::PanicInfo) -> ! {
     let dp = unsafe { pac::Peripherals::steal() };
     //write_str(&dp, &_info.message().as_str().unwrap());
     loop {
-        set_high(&dp.VPORTA, LED);
+        set_high(&dp.PORTA, LED);
         delay::delay_ms(5);
-        set_low(&dp.VPORTA, LED);
+        set_low(&dp.PORTA, LED);
         delay::delay_ms(100);
     }
 }
@@ -52,17 +51,17 @@ pub fn init_clock(dp: &Peripherals) {
 }
 
 
-pub fn set_high(r: &vporta::RegisterBlock, b: u8) {
+pub fn set_high(r: &porta::RegisterBlock, b: u8) {
     unsafe {
         r.out().modify(|r, w| w.bits(r.bits() | b));
     }
 }
-pub fn set_low(r: &vporta::RegisterBlock, b: u8) {
+pub fn set_low(r: &porta::RegisterBlock, b: u8) {
     unsafe {
         r.out().modify(|r, w| w.bits(r.bits() & !b));
     }
 }
-pub fn set(r: &vporta::RegisterBlock, b: u8, v: bool) {
+pub fn set(r: &porta::RegisterBlock, b: u8, v: bool) {
     unsafe {
         r.out()
             .modify(|r, w| w.bits(if v { r.bits() | b } else { r.bits() & !b }));
@@ -79,7 +78,7 @@ fn main() -> ! {
     let mut serial = Serial::new(&dp);
 
     unsafe {
-        dp.VPORTA.dir().modify(|r, w| w.bits(r.bits() | LED));
+        dp.PORTA.dir().modify(|r, w| w.bits(r.bits() | LED));
     }
     assert!(FREQ == 8_000_000); // init_clock only works for 8Mhz. We check here so panic() can at least blink the LED
 
@@ -106,15 +105,16 @@ fn main() -> ! {
         //serial.write_int((f * 1000.0) as u16);
         serial.write(b"\r\n").unwrap();
 
-        set_high(&dp.VPORTA, LED);
+        set_high(&dp.PORTA, LED);
 
         // delay::delay_ms(5);
-        delay::sleep_delay(5); // (counter & 0xfff) + 1);
+        // delay::sleep_delay(3);
+        delay::sleep_delay((counter & 0xf) + 1);
 
-        //set_low(&dp.VPORTA, LED); // or:
-        set(&dp.VPORTA, LED, false);
+        //set_low(&dp.PORTA, LED); // or:
+        set(&dp.PORTA, LED, false);
 
         //delay::delay_ms(990);
-        delay::sleep_delay(990);
+        delay::sleep_delay(390);
     }
 }
