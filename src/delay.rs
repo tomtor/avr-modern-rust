@@ -1,4 +1,5 @@
-use avr_device::attiny402::{self as pac};
+//use avr_device::attiny402::{self as pac};
+use crate::pac::{self as pac};
 use avr_device::{self, interrupt};
 
 use embedded_hal::delay::DelayNs;
@@ -94,6 +95,8 @@ pub fn sleep_delay(ms: u16) {
 }
 
 #[avr_device::interrupt(attiny402)]
+//#[avr_device::interrupt(attiny1614)]
+// #[avr_device::interrupt(avr128db28)]
 fn RTC_CNT() {
     unsafe {
         SLEEP_CNT -= 1;

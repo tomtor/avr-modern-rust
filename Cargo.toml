@@ -15,6 +15,7 @@ panic-halt = "1.0.0"
 ufmt = "0.2.0"
 nb = "1.1.0"
 embedded-hal = "1.0"
+libm = "0.2.15"
 
 [dependencies.heapless]
 version = "0.8.0"
@@ -39,6 +40,7 @@ version = "0.7.0"
 path = "../../avr-device"
 #git = "https://github.com/rahix/avr-device"
 features = ["attiny402", "rt"]
+#features = ["attiny1614", "rt"]
 #features = ["avr128db28", "rt"]
 
 #[dependencies.avr-hal-generic]

@@ -1,6 +1,5 @@
 #![no_std]
 #![no_main]
-
 #![feature(abi_avr_interrupt)]
 //#![feature(core_intrinsics)]
 // #![feature(asm_experimental_arch)]
@@ -8,11 +7,15 @@
 const LED: u8 = 0b1000_0000; // PA7
 
 const FREQ: u32 = 8_000_000; // Must be 8 Mhz, this is hard wired in init_clock()
+// const FREQ: u32 = 4_000_000; // For AVR128DB28
+// const FREQ: u32 = 12_000_000; // For AVR128DB28
 
 mod delay;
 mod serial;
 
-use avr_device::{attiny402::{self as pac, porta, Peripherals}};
+use avr_device::{attiny402::{self as pac, vporta, porta, Peripherals}};
+//use avr_device::{attiny1614::{self as pac, vporta, porta, Peripherals}};
+// use avr_device::avr128db28::{self as pac, porta, vporta, Peripherals};
 
 use crate::serial::Serial;
 
@@ -21,6 +24,8 @@ use embedded_io::{self, Write};
 //use heapless::String;
 
 use ufmt::{uWrite, uwrite};
+
+// use libm::{exp, floorf, sin, sqrtf};
 
 //use panic_halt as _;
 #[panic_handler]
@@ -50,8 +55,12 @@ pub fn init_clock(dp: &Peripherals) {
         .write(|w| w.pen().set_bit().pdiv()._2x()); // change frequency divider from 6 to 2, so we get 16/2 = 8 Mhz
 }
 
-
 pub fn set_high(r: &porta::RegisterBlock, b: u8) {
+    unsafe {
+        r.out().modify(|r, w| w.bits(r.bits() | b));
+    }
+}
+pub fn set_high_vp(r: &vporta::RegisterBlock, b: u8) {
     unsafe {
         r.out().modify(|r, w| w.bits(r.bits() | b));
     }
@@ -67,20 +76,37 @@ pub fn set(r: &porta::RegisterBlock, b: u8, v: bool) {
             .modify(|r, w| w.bits(if v { r.bits() | b } else { r.bits() & !b }));
     }
 }
-
+// pub fn get(r: &porta::RegisterBlock, b: u8) -> bool {
+//     unsafe {
+//         r.input().read
+//     }
+// }
 
 #[avr_device::entry]
 fn main() -> ! {
     let dp = pac::Peripherals::take().unwrap();
 
+    unsafe {
+        //dp.CPU.ccp().write(|w| w.ccp().ioreg()); // remove protection
+        //dp.NVMCTRL.ctrlb().write(|w| w.flmap().bits(0)); // Set the memory flash mapping for AVR128DB28
+
+        dp.PORTA.dir().modify(|r, w| w.bits(r.bits() | LED));
+    }
+
+    //assert!(FREQ == 8_000_000); // init_clock only works for 8Mhz. We check here so panic() can at least blink the LED
+
     init_clock(&dp);
 
     let mut serial = Serial::new(&dp);
 
-    unsafe {
-        dp.PORTA.dir().modify(|r, w| w.bits(r.bits() | LED));
+    const NUMBERS: &[u16; 1000] = &[1; 1000];
+
+    for ni in NUMBERS.iter() {
+        serial.write_int(*ni); serial.write(b"\r\n").unwrap();
     }
-    assert!(FREQ == 8_000_000); // init_clock only works for 8Mhz. We check here so panic() can at least blink the LED
+    
+    const SOME_STRING: &str = "This String wont ever change\r\n";
+    serial.write_ba(SOME_STRING.as_bytes());
 
     let mut counter: u16 = 0;
     // let mut f: f32 = 1.0;
@@ -102,10 +128,16 @@ fn main() -> ! {
         serial.write_str(" ").unwrap();
         serial.write_char('€').unwrap();
         uwrite!(serial, "μ€ ").unwrap();
-        //serial.write_int((f * 1000.0) as u16);
+        // serial.write_int((f * 1000.0) as u16);
         serial.write(b"\r\n").unwrap();
+        // write!(serial, "f: {:?} sqrtf:  {:?}\r\n", f, sqrtf(f)).unwrap();
+        // write!(serial, "f: {:?} floorf: {:?}\r\n", f, floorf(f)).unwrap();
+        // write!(serial, "f: {:?} sin:    {:?}\r\n", f, sin(f as f64)).unwrap();
+        // write!(serial, "f: {:?} exp:    {:?}\r\n", f, exp(f as f64)).unwrap();
 
         set_high(&dp.PORTA, LED);
+        // The following line produces incorrect code: !!!
+        //set_high_vp(&dp.VPORTA, LED);
 
         // delay::delay_ms(5);
         // delay::sleep_delay(3);
@@ -114,7 +146,8 @@ fn main() -> ! {
         //set_low(&dp.PORTA, LED); // or:
         set(&dp.PORTA, LED, false);
 
-        //delay::delay_ms(990);
+        // delay::delay_ms(990);
         delay::sleep_delay(390);
+        // delay::sleep_delay(1990);
     }
 }
