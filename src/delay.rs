@@ -26,8 +26,9 @@ static mut SLEEP_CNT: u8 = 0; //AtomicU8 = AtomicU8::new(0);
 /// Delays in sleep mode, using the low power RTC counter at 32768 Hz
 pub fn sleep_delay(ms: u16) {
     // serial.write_ba(b"Start...\r\n");
-    if ms == 0
-       { return; }
+    if ms == 0 {
+        return;
+    }
     let dp = unsafe { pac::Peripherals::steal() };
 
     const RTC_PERIOD: u16 = 0x8000; // Overflow at 32768 ticks from RTC
@@ -42,7 +43,7 @@ pub fn sleep_delay(ms: u16) {
             dp.RTC
                 .ctrla()
                 .write(|w| w.rtcen().set_bit().runstdby().set_bit());
-            dp.SLPCTRL.ctrla().write(|w|w.smode().stdby());
+            dp.SLPCTRL.ctrla().write(|w| w.smode().stdby());
 
             MUST_INIT = false;
         }
@@ -72,7 +73,7 @@ pub fn sleep_delay(ms: u16) {
     }
 
     unsafe {
-            SLEEP_CNT = (tdelay / (RTC_PERIOD as u32)) as u8 + adjust; // Calculate number of wrap arounds (overflows)
+        SLEEP_CNT = (tdelay / (RTC_PERIOD as u32)) as u8 + adjust; // Calculate number of wrap arounds (overflows)
     }
 
     dp.RTC.intflags().write(|w| w.cmp().set_bit());
@@ -83,8 +84,9 @@ pub fn sleep_delay(ms: u16) {
     }
 
     unsafe {
-        while SLEEP_CNT != 0 { // This works, but the following is better? The Atomic type is overkill for u8.
-        // while intrinsics::volatile_load(&raw const SLEEP_CNT as *const u8) != 0 {
+        while SLEEP_CNT != 0 {
+            // This works, but the following is better? The Atomic type is overkill for u8.
+            // while intrinsics::volatile_load(&raw const SLEEP_CNT as *const u8) != 0 {
             avr_device::asm::sleep();
         }
     }

@@ -7,13 +7,13 @@
 const LED: u8 = 0b1000_0000; // PA7
 
 const FREQ: u32 = 8_000_000; // Must be 8 Mhz, this is hard wired in init_clock()
-// const FREQ: u32 = 4_000_000; // For AVR128DB28
-// const FREQ: u32 = 12_000_000; // For AVR128DB28
+                             // const FREQ: u32 = 4_000_000; // For AVR128DB28
+                             // const FREQ: u32 = 12_000_000; // For AVR128DB28
 
 mod delay;
 mod serial;
 
-use avr_device::{attiny402::{self as pac, vporta, porta, Peripherals}};
+use avr_device::attiny402::{self as pac, porta, vporta, Peripherals};
 //use avr_device::{attiny1614::{self as pac, vporta, porta, Peripherals}};
 // use avr_device::avr128db28::{self as pac, porta, vporta, Peripherals};
 
@@ -102,9 +102,10 @@ fn main() -> ! {
     const NUMBERS: &[u16; 1000] = &[1; 1000];
 
     for ni in NUMBERS.iter() {
-        serial.write_int(*ni); serial.write(b"\r\n").unwrap();
+        serial.write_int(*ni);
+        serial.write(b"\r\n").unwrap();
     }
-    
+
     const SOME_STRING: &str = "This String wont ever change\r\n";
     serial.write_ba(SOME_STRING.as_bytes());
 

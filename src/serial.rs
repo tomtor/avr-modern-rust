@@ -5,7 +5,6 @@ use embedded_io;
 
 use core::convert::Infallible;
 
-
 pub struct Serial<'a> {
     p: &'a Peripherals,
 }
@@ -20,11 +19,13 @@ impl<'a> Serial<'a> {
 
         //dp.USART0.ctrlc().write(|w| w.chsize()._8bit());
         unsafe {
-            dp.USART0.baud().write(|w| w.bits((4 * FREQ / 115200) as u16)); // 278)); // 115200 baud
-            // dp.USART0.baud().write(|w| w.bits((4 * FREQ / 38400) as u16));
-            // dp.USART1.baud().write(|w| w.bits(4 * FREQ / 115200) as u16));
-            // dp.USART0.baud().write(|w| w.bits(833)); // 38400 baud
-            //dp.USART1.ctrlb().write(|w|w.rxmode().clk2x());
+            dp.USART0
+                .baud()
+                .write(|w| w.bits((4 * FREQ / 115200) as u16)); // 278)); // 115200 baud
+                                                                // dp.USART0.baud().write(|w| w.bits((4 * FREQ / 38400) as u16));
+                                                                // dp.USART1.baud().write(|w| w.bits(4 * FREQ / 115200) as u16));
+                                                                // dp.USART0.baud().write(|w| w.bits(833)); // 38400 baud
+                                                                //dp.USART1.ctrlb().write(|w|w.rxmode().clk2x());
         }
         dp.USART0.ctrlb().write(|w| w.txen().set_bit());
 

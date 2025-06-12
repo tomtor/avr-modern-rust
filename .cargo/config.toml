@@ -1,10 +1,11 @@
 [build]
 target = "avr-none"
 rustflags = ["-C", "target-cpu=attiny402"]
-# note that we use eg the known attiny1614 to generate for the unknown avr128db28 if we specify the correct flash size to the linker:
-#rustflags = ["-C", "target-cpu=attiny1614", "-C", "link-args=-Wl,--defsym=__TEXT_REGION_LENGTH__=131072"]
 #rustflags = ["-C", "target-cpu=attiny1614"]
-#rustflags = ["-C", "target-cpu=atxmega128a3"]
+# note that we use eg the known attiny1614 to generate for the unknown avr128db28 if we specify the correct flash size to the linker:
+#rustflags = ["-C", "target-cpu=attiny1614", "-C", "link-args=-Wl,--defsym=__TEXT_REGION_LENGTH__=131072", "-C", "link-args=-Wl,--defsym=__DATA_REGION_ORIGIN__=16384", "-C", "link-args=-Wl,--defsym=__DATA_REGION_LENGTH__=16384", "-C", "link-args=-Wl,--defsym=__stack=32767" ]
+# for >32kB avr128 use:
+#rustflags = ["-C", "target-cpu=atxmega128a3", "-C", "link-args=-Wl,--defsym=__DATA_REGION_ORIGIN__=16384", "-C", "link-args=-Wl,--defsym=__DATA_REGION_LENGTH__=16384", "-C", "link-args=-Wl,--defsym=__stack=32767" ]
 
 [target.'cfg(target_arch = "avr")']
 runner = "ravedude"
