@@ -1,4 +1,3 @@
-//use avr_device::attiny402::{self as pac};
 use crate::pac::{self as pac};
 use avr_device::{self, interrupt};
 
@@ -96,9 +95,13 @@ pub fn sleep_delay(ms: u16) {
     // serial.write_ba(b"The End!");
 }
 
+#[cfg(feature = "attiny402")]
 #[avr_device::interrupt(attiny402)]
-//#[avr_device::interrupt(attiny1614)]
-// #[avr_device::interrupt(avr128db28)]
+#[cfg(feature = "attiny1614")]
+#[avr_device::interrupt(attiny1614)]
+#[cfg(feature = "avr128db28")]
+#[avr_device::interrupt(avr128db28)]
+
 fn RTC_CNT() {
     unsafe {
         SLEEP_CNT -= 1;

@@ -1,4 +1,3 @@
-//use avr_device::attiny402::{Peripherals};
 use crate::{pac::Peripherals, FREQ};
 
 use embedded_io;
@@ -9,34 +8,52 @@ pub struct Serial<'a> {
     p: &'a Peripherals,
 }
 
+macro_rules! uart {
+($usartnr:ident) => {
 impl<'a> Serial<'a> {
     pub fn new(dp: &'a Peripherals) -> Serial<'a> {
-        dp.PORTA.out().write(|w| w.pa6().set_bit());
-        dp.PORTA.dirset().write(|w| w.pa6().set_bit());
-        //dp.PORTMUX.usartroutea().write(|w| w.usart0().alt1());
-        // dp.PORTC.out().write(|w| w.pc0().set_bit());
-        // dp.PORTC.dirset().write(|w| w.pc0().set_bit());
-
-        //dp.USART0.ctrlc().write(|w| w.chsize()._8bit());
-        unsafe {
-            dp.USART0
-                .baud()
-                .write(|w| w.bits((4 * FREQ / 115200) as u16)); // 278)); // 115200 baud
-                                                                // dp.USART0.baud().write(|w| w.bits((4 * FREQ / 38400) as u16));
-                                                                // dp.USART1.baud().write(|w| w.bits(4 * FREQ / 115200) as u16));
-                                                                // dp.USART0.baud().write(|w| w.bits(833)); // 38400 baud
-                                                                //dp.USART1.ctrlb().write(|w|w.rxmode().clk2x());
+        #[cfg(any(feature = "attiny402", feature = "attiny1614"))]
+        {
+            dp.PORTA.out().write(|w| w.pa6().set_bit());
+            dp.PORTA.dirset().write(|w| w.pa6().set_bit());
         }
+        #[cfg(any(feature = "attiny1614"))]
+        dp.PORTMUX.usartroutea().write(|w| w.usart0().alt1());
+        #[cfg(any(feature = "avr128db28"))]
+        {
+            dp.PORTC.out().write(|w| w.pc0().set_bit());
+            dp.PORTC.dirset().write(|w| w.pc0().set_bit());
+        }
+        unsafe {
+            #[cfg(feature = "avr128db28")]
+            {
+                dp.USART1
+                    .baud()
+                    .write(|w| w.bits((4 * FREQ / 115200) as u16));
+            }
+            #[cfg(not(feature = "avr128db28"))]
+            {
+                dp.USART0
+                    .baud()
+                    .write(|w| w.bits((4 * FREQ / 115200) as u16));
+            }
+        }
+        #[cfg(feature = "avr128db28")]
+        dp.USART1.ctrlb().write(|w| w.txen().set_bit());
+        #[cfg(not(feature = "avr128db28"))]
         dp.USART0.ctrlb().write(|w| w.txen().set_bit());
 
         Serial { p: dp }
     }
 
     pub fn write_c(&self, b: u8) {
-        while self.p.USART0.status().read().dreif() == false {} // Wait for empty transmit buffer
-        unsafe {
-            self.p.USART0.txdatal().write(|w| w.bits(b));
+        {
+            while self.p.$usartnr.status().read().dreif() == false {} // Wait for empty transmit buffer
+            unsafe {
+                self.p.$usartnr.txdatal().write(|w| w.bits(b));
+            }
         }
+
     }
 
     pub fn write_ba(&self, s: &[u8]) {
@@ -54,6 +71,13 @@ impl<'a> Serial<'a> {
         }
     }
 }
+}
+}
+
+#[cfg(feature = "avr128db28")]
+uart!(USART1);
+#[cfg(not(feature = "avr128db28"))]
+uart!(USART0);
 
 impl<'a> ufmt::uWrite for Serial<'a> {
     type Error = Infallible;

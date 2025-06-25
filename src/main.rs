@@ -13,9 +13,12 @@ const FREQ: u32 = 8_000_000; // Must be 8 Mhz, this is hard wired in init_clock(
 mod delay;
 mod serial;
 
+#[cfg(feature = "attiny1614")]
+use avr_device::attiny1614::{self as pac, porta, vporta, Peripherals};
+#[cfg(feature = "attiny402")]
 use avr_device::attiny402::{self as pac, porta, vporta, Peripherals};
-//use avr_device::{attiny1614::{self as pac, vporta, porta, Peripherals}};
-// use avr_device::avr128db28::{self as pac, porta, vporta, Peripherals};
+#[cfg(feature = "avr128db28")]
+use avr_device::avr128db28::{self as pac, porta, vporta, Peripherals};
 
 use crate::serial::Serial;
 
@@ -87,8 +90,11 @@ fn main() -> ! {
     let dp = pac::Peripherals::take().unwrap();
 
     unsafe {
-        //dp.CPU.ccp().write(|w| w.ccp().ioreg()); // remove protection
-        //dp.NVMCTRL.ctrlb().write(|w| w.flmap().bits(0)); // Set the memory flash mapping for AVR128DB28
+        #[cfg(feature = "avr128db28")]
+        {
+            dp.CPU.ccp().write(|w| w.ccp().ioreg()); // remove protection
+            dp.NVMCTRL.ctrlb().write(|w| w.flmap().bits(0)); // Set the memory flash mapping for AVR128DB28
+        }
 
         dp.PORTA.dir().modify(|r, w| w.bits(r.bits() | LED));
     }

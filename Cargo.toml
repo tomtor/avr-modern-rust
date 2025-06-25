@@ -5,6 +5,13 @@ authors = ["Tom Vijlbrief <tvijlbrief@gmail.com>"]
 edition = "2021"
 license = "MIT OR Apache-2.0"
 
+[features]
+default = [ "attiny402" ]
+
+attiny402 = []
+attiny1614 = []
+avr128db28 = []
+
 [[bin]]
 name = "avr_modern_demo"
 test = false
