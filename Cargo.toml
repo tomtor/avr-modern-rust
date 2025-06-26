@@ -6,11 +6,11 @@ edition = "2021"
 license = "MIT OR Apache-2.0"
 
 [features]
-default = [ "attiny402" ]
+default = [ "attiny1614" ]
 
-attiny402 = []
-attiny1614 = []
-avr128db28 = []
+attiny402 = [ "avr-device/attiny402" ]
+attiny1614 = [ "avr-device/attiny1614" ]
+avr128db28 = [ "avr-device/avr128db28" ]
 
 [[bin]]
 name = "avr_modern_demo"
@@ -46,7 +46,8 @@ features = ["unproven"]
 version = "0.7.0"
 path = "../../avr-device"
 #git = "https://github.com/rahix/avr-device"
-features = ["attiny402", "rt"]
+#features = ["attiny402", "rt"]
+features = ["rt"]
 #features = ["attiny1614", "rt"]
 #features = ["avr128db28", "rt"]
 

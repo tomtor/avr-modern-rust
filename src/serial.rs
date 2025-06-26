@@ -8,6 +8,7 @@ pub struct Serial<'a> {
     p: &'a Peripherals,
 }
 
+/// Creates an USART with [usartnr] for chips with multiple usarts
 macro_rules! usart {
     ($usartnr:ident) => {
         impl<'a> Serial<'a> {
@@ -17,8 +18,8 @@ macro_rules! usart {
                     dp.PORTA.out().write(|w| w.pa6().set_bit());
                     dp.PORTA.dirset().write(|w| w.pa6().set_bit());
                 }
-                #[cfg(any(feature = "attiny1614"))]
-                dp.PORTMUX.usartroutea().write(|w| w.usart0().alt1());
+                // #[cfg(any(feature = "attiny1614"))]
+                // dp.PORTMUX.usartroutea().write(|w| w.usart0().alt1());
                 #[cfg(any(feature = "avr128db28"))]
                 {
                     dp.PORTC.out().write(|w| w.pc0().set_bit());
