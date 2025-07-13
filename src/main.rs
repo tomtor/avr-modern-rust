@@ -11,14 +11,17 @@ const FREQ: u32 = 8_000_000; // Must be 8 Mhz, this is hard wired in init_clock(
                              // const FREQ: u32 = 12_000_000; // For AVR128DB28
 
 mod delay;
+mod io;
 mod serial;
 
 #[cfg(feature = "attiny1614")]
-use avr_device::attiny1614::{self as pac, porta, vporta, Peripherals};
+use avr_device::attiny1614::{self as pac, Peripherals};
 #[cfg(feature = "attiny402")]
-use avr_device::attiny402::{self as pac, porta, vporta, Peripherals};
+use avr_device::attiny402::{self as pac, Peripherals};
 #[cfg(feature = "avr128db28")]
-use avr_device::avr128db28::{self as pac, porta, vporta, Peripherals};
+use avr_device::avr128db28::{self as pac, Peripherals};
+
+use crate::io::{set, set_high, set_low};
 
 use crate::serial::Serial;
 
@@ -58,32 +61,7 @@ pub fn init_clock(dp: &Peripherals) {
         .write(|w| w.pen().set_bit().pdiv()._2x()); // change frequency divider from 6 to 2, so we get 16/2 = 8 Mhz
 }
 
-pub fn set_high(r: &porta::RegisterBlock, b: u8) {
-    unsafe {
-        r.out().modify(|r, w| w.bits(r.bits() | b));
-    }
-}
-pub fn set_high_vp(r: &vporta::RegisterBlock, b: u8) {
-    unsafe {
-        r.out().modify(|r, w| w.bits(r.bits() | b));
-    }
-}
-pub fn set_low(r: &porta::RegisterBlock, b: u8) {
-    unsafe {
-        r.out().modify(|r, w| w.bits(r.bits() & !b));
-    }
-}
-pub fn set(r: &porta::RegisterBlock, b: u8, v: bool) {
-    unsafe {
-        r.out()
-            .modify(|r, w| w.bits(if v { r.bits() | b } else { r.bits() & !b }));
-    }
-}
-// pub fn get(r: &porta::RegisterBlock, b: u8) -> bool {
-//     unsafe {
-//         r.input().read
-//     }
-// }
+static mut ID: u16 = 5;
 
 #[avr_device::entry]
 fn main() -> ! {
@@ -120,6 +98,10 @@ fn main() -> ! {
     // const SCALE: f32 = 1.01;
 
     loop {
+        unsafe {
+            ID += 1;
+        }
+
         // if f >= 65535.0 / 1000.0 {
         //     f = 1.0;
         //     counter = 0;

@@ -97,12 +97,21 @@ pub fn sleep_delay(ms: u16) {
 
 #[cfg(feature = "attiny402")]
 #[avr_device::interrupt(attiny402)]
+fn RTC_CNT() {
+    tick();
+}
 #[cfg(feature = "attiny1614")]
 #[avr_device::interrupt(attiny1614)]
+fn RTC_CNT() {
+    tick();
+}
 #[cfg(feature = "avr128db28")]
 #[avr_device::interrupt(avr128db28)]
-
 fn RTC_CNT() {
+    tick();
+}
+
+fn tick() {
     unsafe {
         SLEEP_CNT -= 1;
     }

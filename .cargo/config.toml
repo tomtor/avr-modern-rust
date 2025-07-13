@@ -1,16 +1,23 @@
 [build]
 target = "avr-none"
-rustflags = ["-C", "target-cpu=attiny402"]
+#rustflags = ["-C", "target-cpu=attiny402"]
+#rustflags = ["-C", "target-cpu=atmega328p"]
 #rustflags = ["-C", "target-cpu=avr128db28"]
-#rustflags = ["-C", "target-cpu=attiny1614"]
-# note that we use eg the known attiny1614 to generate for the unknown avr128db28 if we specify the correct flash size to the linker:
+rustflags = ["-C", "target-cpu=attiny1614"] #, "-C", "link-args=-Wl,--relax"]
+
+# note that we use eg the known attiny1614 to generate for the unknown avr128db28 by specifying the correct parameters to the linker:
 #rustflags = ["-C", "target-cpu=attiny1614", "-C", "link-args=-Wl,--defsym=__TEXT_REGION_LENGTH__=131072", "-C", "link-args=-Wl,--defsym=__DATA_REGION_ORIGIN__=16384", "-C", "link-args=-Wl,--defsym=__DATA_REGION_LENGTH__=16384", "-C", "link-args=-Wl,--defsym=__stack=32767" ]
 # for >32kB avr128 use:
 #rustflags = ["-C", "target-cpu=atxmega128a3", "-C", "link-args=-Wl,--defsym=__DATA_REGION_ORIGIN__=16384", "-C", "link-args=-Wl,--defsym=__DATA_REGION_LENGTH__=16384", "-C", "link-args=-Wl,--defsym=__stack=32767" ]
-# export RUSTC_LOG=rustc_codegen_ssa::back::link=info
 
 [target.'cfg(target_arch = "avr")']
 runner = "ravedude"
 
 [unstable]
 build-std = ["core"]
+
+
+#rustflags = ["-C", "lto=yes", "-C", "target-cpu=attiny1614", "-C", "link-args=-Wl,--relax", "-Clink-arg=-Wl,-plugin", "-Clink-arg=-Wl,/media/scratch/rust/llvm-project/build/bin/../lib/LLVMgold.so", "-Clink-arg=-Wl,-plugin-opt=mcpu=attiny1614", "-Clink-arg=-Wl,-plugin-opt=O3"]
+#rustflags = ["-C", "target-cpu=attiny1614", "-C", "link-args=-Wl,--relax", "-Clinker-plugin-lto", "-Clinker=avr-gcc", "-Clink-arg=-Wl,-plugin", "-Clink-arg=-Wl,/media/scratch/rust/llvm-project/build/bin/../lib/LLVMgold.so", "-Clink-arg=-Wl,-plugin-opt=mcpu=attiny1614", "-Clink-arg=-Wl,-plugin-opt=O2", "-Clink-arg=-L/home/tom/src/rust/avr-gcc-build/output/avr-gcc-14.1.0-x64-linux/avr/lib/avrxmega3", "-Clink-arg=-L/home/tom/src/rust/avr-gcc-build/output/avr-gcc-14.1.0-x64-linux/lib/gcc/avr/14.1.0/avrxmega3"]
+
+# export RUSTC_LOG=rustc_codegen_ssa::back::link=info

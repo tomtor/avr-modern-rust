@@ -6,6 +6,7 @@ edition = "2021"
 license = "MIT OR Apache-2.0"
 
 [features]
+#default = [ "attiny402" ]
 default = [ "attiny1614" ]
 
 attiny402 = [ "avr-device/attiny402" ]
