@@ -8,6 +8,7 @@ license = "MIT OR Apache-2.0"
 [features]
 #default = [ "attiny402" ]
 default = [ "attiny1614" ]
+#default = [ "avr128db28" ]
 
 attiny402 = [ "avr-device/attiny402" ]
 attiny1614 = [ "avr-device/attiny1614" ]
@@ -66,5 +67,8 @@ opt-level = "s"
 panic = "abort"
 codegen-units = 1
 debug = true
-lto = true
+#lto = false
+#lto = true
+#lto = "fat"
+lto = "off"
 opt-level = "s"

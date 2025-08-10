@@ -1,8 +1,6 @@
 #![no_std]
 #![no_main]
 #![feature(abi_avr_interrupt)]
-//#![feature(core_intrinsics)]
-// #![feature(asm_experimental_arch)]
 
 const LED: u8 = 0b1000_0000; // PA7
 
@@ -62,17 +60,36 @@ pub fn init_clock(dp: &Peripherals) {
 }
 
 static mut ID: u16 = 5;
+static mut NRS: &mut [u16; 100] = &mut [1; 100];
+
+static mut C: u8 = 32;
+
+pub fn write_c(b: u8) {
+  unsafe { C = b; }
+}
+
+pub fn write_int(i: u16) {
+                if i > 9 {
+                    write_int(i / 10);
+                    write_int(i % 10);
+                } else {
+                    write_c(b'0' + i as u8);
+                }
+}
+
 
 #[avr_device::entry]
 fn main() -> ! {
     let dp = pac::Peripherals::take().unwrap();
 
     unsafe {
+        /* the following code is needed if we use mcu type attiny1614
         #[cfg(feature = "avr128db28")]
         {
             dp.CPU.ccp().write(|w| w.ccp().ioreg()); // remove protection
             dp.NVMCTRL.ctrlb().write(|w| w.flmap().bits(0)); // Set the memory flash mapping for AVR128DB28
         }
+        */
 
         dp.PORTA.dir().modify(|r, w| w.bits(r.bits() | LED));
     }
@@ -88,6 +105,12 @@ fn main() -> ! {
     for ni in NUMBERS.iter() {
         serial.write_int(*ni);
         serial.write(b"\r\n").unwrap();
+    }
+
+    let mut i: usize = 0;
+    while i < 100 {
+      unsafe { serial.write_int(NRS[i]); }
+      i += 1;
     }
 
     const SOME_STRING: &str = "This String wont ever change\r\n";
@@ -125,8 +148,6 @@ fn main() -> ! {
         // write!(serial, "f: {:?} exp:    {:?}\r\n", f, exp(f as f64)).unwrap();
 
         set_high(&dp.PORTA, LED);
-        // The following line produces incorrect code: !!!
-        //set_high_vp(&dp.VPORTA, LED);
 
         // delay::delay_ms(5);
         // delay::sleep_delay(3);

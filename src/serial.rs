@@ -1,7 +1,5 @@
 use crate::{pac::Peripherals, FREQ};
 
-use embedded_io;
-
 use core::convert::Infallible;
 
 pub struct Serial<'a> {

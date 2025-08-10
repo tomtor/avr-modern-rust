@@ -1,5 +1,6 @@
 [build]
 target = "avr-none"
+
 #rustflags = ["-C", "target-cpu=attiny402"]
 #rustflags = ["-C", "target-cpu=atmega328p"]
 #rustflags = ["-C", "target-cpu=avr128db28"]
@@ -15,7 +16,6 @@ runner = "ravedude"
 
 [unstable]
 build-std = ["core"]
-
 
 #rustflags = ["-C", "lto=yes", "-C", "target-cpu=attiny1614", "-C", "link-args=-Wl,--relax", "-Clink-arg=-Wl,-plugin", "-Clink-arg=-Wl,/media/scratch/rust/llvm-project/build/bin/../lib/LLVMgold.so", "-Clink-arg=-Wl,-plugin-opt=mcpu=attiny1614", "-Clink-arg=-Wl,-plugin-opt=O3"]
 #rustflags = ["-C", "target-cpu=attiny1614", "-C", "link-args=-Wl,--relax", "-Clinker-plugin-lto", "-Clinker=avr-gcc", "-Clink-arg=-Wl,-plugin", "-Clink-arg=-Wl,/media/scratch/rust/llvm-project/build/bin/../lib/LLVMgold.so", "-Clink-arg=-Wl,-plugin-opt=mcpu=attiny1614", "-Clink-arg=-Wl,-plugin-opt=O2", "-Clink-arg=-L/home/tom/src/rust/avr-gcc-build/output/avr-gcc-14.1.0-x64-linux/avr/lib/avrxmega3", "-Clink-arg=-L/home/tom/src/rust/avr-gcc-build/output/avr-gcc-14.1.0-x64-linux/lib/gcc/avr/14.1.0/avrxmega3"]

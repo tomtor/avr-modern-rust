@@ -24,7 +24,6 @@ static mut SLEEP_CNT: u8 = 0; //AtomicU8 = AtomicU8::new(0);
 
 /// Delays in sleep mode, using the low power RTC counter at 32768 Hz
 pub fn sleep_delay(ms: u16) {
-    // serial.write_ba(b"Start...\r\n");
     if ms == 0 {
         return;
     }
@@ -33,9 +32,7 @@ pub fn sleep_delay(ms: u16) {
     const RTC_PERIOD: u16 = 0x8000; // Overflow at 32768 ticks from RTC
     static mut MUST_INIT: bool = true;
     unsafe {
-        if MUST_INIT == true {
-            //serial.write_ba(b"Do init...\r\n");
-
+        if MUST_INIT {
             while dp.RTC.status().read().bits() > 0 {} /* Wait for all register to be synchronized */
             dp.RTC.per().write(|w| w.set(RTC_PERIOD - 1)); /* 1 sec overflow */
             dp.RTC.clksel().write(|w| w.bits(0)); /* 32.768kHz Internal Ultra-Low-Power Oscillator (OSCULP32K) */
@@ -54,7 +51,7 @@ pub fn sleep_delay(ms: u16) {
     interrupt::disable();
 
     let cnt: u16 = dp.RTC.cnt().read().bits();
-    let tdelay = (ms as u32 * 32) + ((ms / 4 * 3) as u16 as u32);
+    let tdelay = (ms as u32 * 32) + ((ms / 4 * 3) as u32);
     let cmp = (cnt + tdelay as u16) & (RTC_PERIOD - 1);
 
     dp.RTC.cmp().write(|w| w.set(cmp));
@@ -91,8 +88,6 @@ pub fn sleep_delay(ms: u16) {
     }
     dp.RTC.intctrl().modify(|_, w| w.cmp().clear_bit());
     dp.ADC0.ctrla().modify(|_, w| w.enable().set_bit()); // important on many AVR devices
-
-    // serial.write_ba(b"The End!");
 }
 
 #[cfg(feature = "attiny402")]

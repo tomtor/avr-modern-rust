@@ -1,16 +1,11 @@
 #[cfg(feature = "attiny1614")]
-use avr_device::attiny1614::{porta, vporta};
+use avr_device::attiny1614::porta;
 #[cfg(feature = "attiny402")]
-use avr_device::attiny402::{self as pac, porta, vporta, Peripherals};
+use avr_device::attiny402::porta;
 #[cfg(feature = "avr128db28")]
-use avr_device::avr128db28::{self as pac, porta, vporta, Peripherals};
+use avr_device::avr128db28::porta;
 
 pub fn set_high(r: &porta::RegisterBlock, b: u8) {
-    unsafe {
-        r.out().modify(|r, w| w.bits(r.bits() | b));
-    }
-}
-pub fn set_high_vp(r: &vporta::RegisterBlock, b: u8) {
     unsafe {
         r.out().modify(|r, w| w.bits(r.bits() | b));
     }
