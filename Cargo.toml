@@ -62,13 +62,11 @@ features = ["rt"]
 panic = "abort"
 lto = true
 opt-level = "s"
+overflow-checks = false
 
 [profile.release]
 panic = "abort"
 codegen-units = 1
 debug = true
-#lto = false
-#lto = true
-#lto = "fat"
-lto = "off"
+lto = true
 opt-level = "s"
